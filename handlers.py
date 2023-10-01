@@ -3,117 +3,174 @@ from aiogram.types import CallbackQuery, MediaGroup, InputMediaDocument
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from create_bot import dp, bot
-from texts import welcomeMessage, programMessage, programMessage2, finishMessage
-from keyboards import inlineKbOne, mainKeyboard, adminKeyboard, f, priceKeyboard, fromTheCourse
-from database import sql_write_sing, sql_read_sing, sql_write_pay, sql_read_pay, sql_delete_pay
+from texts import *
+from keyboards import * 
+from database import *
 
 async def cmdStart(message: types.Message):
-    await message.answer(text=welcomeMessage, reply_markup=inlineKbOne)
-
-async def programCourse(callback_query: types.CallbackQuery):
-    await bot.send_message(chat_id=callback_query.from_user.id, text=programMessage, reply_markup=mainKeyboard)
-    await bot.send_message(chat_id=callback_query.from_user.id, text=programMessage2,parse_mode=types.ParseMode.HTML, reply_markup=fromTheCourse)
-
-async def fromCourse(callback_query: types.CallbackQuery):
-    await bot.send_message(chat_id=callback_query.from_user.id, text=finishMessage)
+    await message.answer(text=welcomeMessage, reply_markup=firstKeyboard)
+    await sql_start_bot_write(message.from_user.id)
 
 
-class FSMUser(StatesGroup):
-    q1 = State()
-    q2 = State()
+    
 
-async def singUp(message: types.Message, state: FSMContext):
-    numberPhone = message.contact.phone_number
-    await FSMUser.q1.set()
-    async with state.proxy() as data:
-        data['q0'] = numberPhone
-    await message.answer(text = "Укажите фамилию и имя")
-
-async def FSname(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['q1'] = message.text
-    await FSMUser.next()
-    await message.answer(text = "Укажите почту")
-
-async def email(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['q2'] = message.text
-    await state.finish()
-    await sql_write_sing(message.from_user.id, list(data.values()))
+async def catalog(message: types.Message):
     print(message.from_user.id)
-    await bot.send_chat_action(chat_id=message.from_user.id, action=types.ChatActions.UPLOAD_DOCUMENT)
-    with open('checklist.pdf', 'rb') as pdf_file:
-        # Отправьте PDF-файл пользователю
-        await bot.send_document(message.chat.id, pdf_file)
-    #await message.answer(text=finishMessage, reply_markup=mainKeyboard)
+    await message.answer(text="🛒 Выберите категорию:", reply_markup=catalogKeyboard)
+async def connection(message: types.Message):
+    await message.answer(text="✉️ Напишите администратору: @itmmpmi")
+async def cosmetic(callback_query: types.CallbackQuery):
+    res = await sql_read_cosmetic()
+    if len(res) != 0:
+        for i in res:
+            #await bot.send_photo(chat_id=callback_query.from_user.id,photo=i[1],caption=f"🎁 Название: {i[2]}\n📄 Описание: {i[3]}\n💰 Цена: {i[4]}₽\n🏷️ Артикул: {i[5]}")
 
+            await bot.send_photo(chat_id=callback_query.from_user.id, photo = i[1], caption= f'Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[4]}₽\nАртикул: {i[5]}')
+    else:
+        await bot.send_message(chat_id=callback_query.from_user.id, text="Товаров в данной категории, к сожалению, пока нет.")
 
-class FSMPay(StatesGroup):
-    s1 = State()
-    s2 = State()
+async def sweets(callback_query: types.CallbackQuery):
+    res = await sql_read_sweets()
+    if len(res) != 0:
+        for i in res:
+            await bot.send_photo(chat_id=callback_query.from_user.id,photo=i[1],caption=f"🎁 Название: {i[2]}\n📄 Описание: {i[3]}\n💰 Цена: {i[4]}₽\n🏷️ Артикул: {i[5]}")
+            #await bot.send_photo(chat_id=callback_query.from_user.id, photo = i[1], caption= f'Название: {i[2]}\nОписание: {i[3]}\nАртикул: {i[4]}')
+    else:
+        await bot.send_message(chat_id=callback_query.from_user.id, text="Товаров в данной категории, к сожалению, пока нет.")
 
+async def box(callback_query: types.CallbackQuery):
+    res = await sql_read_box()
+    if len(res) != 0:
+        for i in res:
+            await bot.send_photo(chat_id=callback_query.from_user.id,photo=i[1],caption=f"🎁 Название: {i[2]}\n📄 Описание: {i[3]}\n💰 Цена: {i[4]}₽\n🏷️ Артикул: {i[5]}")
+            #await bot.send_photo(chat_id=callback_query.from_user.id, photo = i[1], caption= f'Название: {i[2]}\nОписание: {i[3]}\nАртикул: {i[4]}')
+    else:
+        await bot.send_message(chat_id=callback_query.from_user.id, text="Товаров в данной категории, к сожалению, пока нет.")
 
-async def payCheck(message: types.Message):
-    await message.answer("Цена курса на месяц - 25000 рублей\nПолная стоимость курса - 47000 рублей.\nРеквизиты для оплаты: 5469380089601016")
-    await message.answer("Выберите интересующий вас тариф.",reply_markup=priceKeyboard)
-    await FSMPay.s1.set()
+async def accessories(callback_query: types.CallbackQuery):
+    res = await sql_read_accessories()
+    if len(res) != 0:
+        for i in res:
+            await bot.send_photo(chat_id=callback_query.from_user.id,photo=i[1],caption=f"🎁 Название: {i[2]}\n📄 Описание: {i[3]}\n💰 Цена: {i[4]}₽\n🏷️ Артикул: {i[5]}")
+            #wait bot.send_photo(chat_id=callback_query.from_user.id, photo = i[0], caption= f'Название: {i[1]}\nОписание: {i[2]}\nАртикул: {i[3]}')
+    else:
+         await bot.send_message(chat_id=callback_query.from_user.id, text="Товаров в данной категории, к сожалению, пока нет.")
 
-async def finishPay1(callback_query: types.CallbackQuery, state: FSMContext):
-    async with state.proxy() as data:
-        data['s1'] = callback_query.data
-    await FSMPay.next()
-    await bot.send_message(chat_id=callback_query.from_user.id, text='Отлично! Прикрепите скриншот оплаты. После подтверждения менеджером, вам придет ссылка на курс.')
-
-async def finishPay2(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['s2'] = message.photo[0].file_id
-    await state.finish()
-    await sql_write_pay(message.from_user.id, message.from_user.username, list(data.values()))
-    await message.answer('Ожидайте подтверждения.')
-
-ADMIN = [1313463136, 609250699, 891018303]
+ADMIN = [1313463136, 1366797671, 5605262004]
 async def adminInput(message: types.Message):
     if message.from_user.id in ADMIN:
-        await message.answer("Вы администратор бота", reply_markup=adminKeyboard)
+        await message.answer("Вы администратор этого бота.", reply_markup= adminKeyboard)
 
-async def adminCheckSingUp(message: types.Message):
-    res = await sql_read_sing()
-    for i in res:
-        phone, name, email = i[1].split('\n')
-        await message.answer(f'Имя: {name}\nНомер: {phone}\nПочта: {email}')
+class FSMAdd(StatesGroup):
+    a0 = State()
+    a1 = State()
+    a2 = State()
+    a3 = State()
+    a4 = State()
+    a5 = State()
 
 
-async def adminCheckPay(message: types.Message):
-    res = await sql_read_pay()
-    for i in res:
-        await bot.send_photo(chat_id=message.from_user.id, photo=i[2], caption="@"+i[1]+'\n'+i[-1]+' рублей', reply_markup=f(i[0]))
 
-async def payGood(callback_query: types.CallbackQuery):
-    tmp = callback_query.data.replace('proof ', '')
+async def choosingCategory(message: types.Message):
+    await message.answer(text = "Выберите категорию, в которую хотите добавить товар.", reply_markup=choosingCategoryKeyboard) 
+    await FSMAdd.a0.set()
 
-    chat_url = 'https://t.me/+m4GrN22jF-k4Mzgy'  # Здесь укажите ID вашего закрытого чата
-    user_id_to_add = tmp
-    await bot.send_message(user_id_to_add, f'Оплата подтверждена! \nЧтобы добавиться в чат курса, вступите в наш закрытый чат\n{chat_url}')
-    await sql_delete_pay(user_id_to_add)
+async def cmdStop(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer(text="Добавление товара остановлено")
+
+async def addProduct(callback_query: types.CallbackQuery, state: FSMContext):
+    tmp = callback_query.data.replace('add ', '')
+    async with state.proxy() as data:
+        data['a0'] = tmp
+    await FSMAdd.next()
+    await bot.send_message(chat_id=callback_query.from_user.id, text="Прикрепите фото нового товара")
+    
+
+async def addProduct1(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['a1'] = message.photo[0].file_id
+    await FSMAdd.next()
+    await message.answer("Введите название продукта")
+
+async def addProduct2(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['a2'] = message.text
+    await FSMAdd.next()
+    await message.answer("Введите описание продукта")
+
+async def addProduct3(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['a3'] = message.text
+    await FSMAdd.next()
+    await message.answer("Введите цену продукта")
+
+async def addProduct4(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['a4'] = message.text
+    await FSMAdd.next()
+    await message.answer("Отлично! Осталось указать артикул")
+
+
+async def addProduct5(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['a5'] = message.text
+    await state.finish()
+    await sql_write(list(data.values()))
+    await message.answer("Товар добавлен в каталог")
+
+
+async def choosingCategoryDel(message: types.Message):
+    await message.answer(text = "Выберите категорию, из которой хотите удалить товар", reply_markup=choosingCategoryDelKeyboard)
+
+async def deleteProduct(callback_query: types.CallbackQuery):
+    category = callback_query.data.replace('del ', '')
+    if category == "cosmetic":
+        res = await sql_read_cosmetic()
+    elif category == "sweets":
+        res = await sql_read_sweets()
+    elif category == "box":
+        res = await sql_read_box()
+    else:
+        res = await sql_read_accessories()
+    if len(res) != 0:
+        for i in res:
+            await bot.send_photo(chat_id=callback_query.from_user.id, photo = i[1], caption= f'Название: {i[2]}\nОписание: {i[3]}\nАртикул: {i[4]}', reply_markup=f(category, i[0]))
+    else:
+        await bot.send_message(chat_id=callback_query.from_user.id, text="Товаров в данной категории, к сожалению, пока нет.")
+
+
+async def finishDel(callback_query: types.CallbackQuery):
     await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    info = callback_query.data.replace('product ', '')
+    info = info.split("|")
+    category = info[0]
+    id = int(info[1])
+    await sql_delete(category, id)
 
-
+async def checkCountUsers(message: types.Message):
+    count = await sql_start_bot_read()
+    await message.answer(f"Количество людей, запустивших бота - {count}")
 
 def register_handlers(dp: Dispatcher):
     dp.register_message_handler(cmdStart, commands=['start'])
-    dp.register_callback_query_handler(programCourse, lambda c: c.data == "program")
-    dp.register_callback_query_handler(fromCourse, lambda c: c.data == "from")
-    #dp.register_message_handler(course, text = 'О курсе')
-    dp.register_message_handler(singUp, content_types=types.ContentType.CONTACT)
-    dp.register_callback_query_handler(finishPay1, state=FSMPay.s1)
-    dp.register_message_handler(finishPay2, content_types=['photo'], state=FSMPay.s2)
-
-    dp.register_message_handler(FSname, state=FSMUser.q1)
-    dp.register_message_handler(email, state=FSMUser.q2)
+    dp.register_message_handler(cmdStop, commands=['stop'], state="*")
+    dp.register_message_handler(catalog, text = 'Каталог')
+    dp.register_message_handler(connection, text = 'Связаться с нами')
+    dp.register_callback_query_handler(cosmetic, lambda c: c.data == "cosmetic")
+    dp.register_callback_query_handler(sweets, lambda c: c.data == "sweets")
+    dp.register_callback_query_handler(box, lambda c: c.data == "box")
+    dp.register_callback_query_handler(accessories, lambda c: c.data == "accessories")
     dp.register_message_handler(adminInput, commands=['admin'])
-    dp.register_message_handler(adminCheckSingUp, text = 'Запись')
-    dp.register_message_handler(adminCheckPay, text = 'Оплата')
-    dp.register_message_handler(payCheck, text = 'Оплатить')
-    dp.register_callback_query_handler(payGood, lambda x: x.data and x.data.startswith('proof '))
-    #dp.register_message_handler(finishPay, content_types=types.ContentType.PHOTO)
+    dp.register_message_handler(choosingCategory, text = "Добавить")
+    dp.register_callback_query_handler(addProduct, lambda x: x.data and x.data.startswith('add '), state=FSMAdd.a0)
+    dp.register_message_handler(addProduct1,content_types=['photo'], state=FSMAdd.a1)
+    dp.register_message_handler(addProduct2, state=FSMAdd.a2)
+    dp.register_message_handler(addProduct3, state=FSMAdd.a3)
+    dp.register_message_handler(addProduct4, state=FSMAdd.a4)
+    dp.register_message_handler(addProduct5, state=FSMAdd.a5)
+    dp.register_message_handler(choosingCategoryDel, text = "Удалить")
+    dp.register_message_handler(checkCountUsers, text = "Количество пользователей")
+    dp.register_callback_query_handler(deleteProduct, lambda x: x.data and x.data.startswith('del '))
+    dp.register_callback_query_handler(finishDel, lambda x: x.data and x.data.startswith('product '))
     
