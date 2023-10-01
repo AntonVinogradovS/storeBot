@@ -22,7 +22,7 @@ async def connection(message: types.Message):
 @lucky99_girl\n\
 @alina666vagner\n\
 \n\
-Если вам необходимо обсудить заказ по телефону, вы можете позвонить по номеру: +7 902 356-55-74.")
+Если вам необходимо обсудить заказ по телефону, вы можете позвонить по номеру или написать в WhatsApp: +7 902 356-55-74.")
 async def cosmetic(callback_query: types.CallbackQuery):
     res = await sql_read_cosmetic()
     if len(res) != 0:
