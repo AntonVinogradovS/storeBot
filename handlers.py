@@ -15,7 +15,6 @@ async def cmdStart(message: types.Message):
     
 
 async def catalog(message: types.Message):
-    print(message.from_user.id)
     await message.answer(text="🛒 Выберите категорию:", reply_markup=catalogKeyboard)
 async def connection(message: types.Message):
     await message.answer(text="✉️ Свяжитесь с администраторами по следующим контактам:\n\
